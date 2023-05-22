@@ -1,0 +1,21 @@
+{
+    "Description": "Servers for Udacity Project",
+    "Parameters":{
+        "EnvironmentName":{
+            "Type":"String"
+        },
+        "MyIp":{
+            "Type":"AWS::SSM::Parameter::Value<String>",
+            "Default":"home-ip"
+        },
+        "Ami":{
+            "Type":"String"
+        }
+    },
+    "Resources":{
+
+    },
+    "Outputs":{
+
+    }
+}

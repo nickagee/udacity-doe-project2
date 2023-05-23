@@ -216,6 +216,15 @@
         }
     },
     "Outputs":{
-
+        "MainUrl":{
+            "Description":"The site url from the load balancer",
+            "Value":{"Fn::Sub":["http://${LBDns}",{"LBDns": {"Fn::GetAtt":["WebAppLB", "DNSName"]}}]},
+            "Export":{"Fn::Sub":["${EnvName}-LB-DNS",{"EnvName": {"Ref": "EnvironmentName"}}]}
+        },
+        "BastianUrl":{
+            "Description":"The Bastion Host Public IP",
+            "Value":{"Fn::Sub":["http://${PubIP}",{"PubIP": {"Fn::GetAtt":["BastionHostServer", "PublicIp"]}}]},
+            "Export":{"Fn::Sub":["${EnvName}-BH-PubIP",{"EnvName": {"Ref": "EnvironmentName"}}]}
+        }
     }
 }

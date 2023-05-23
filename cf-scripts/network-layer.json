@@ -1,23 +1,29 @@
 {
-    "Description": "VPC Creation via CloudFormation for Udacity Class",
+    "Description": "Network Resources for Udagram Project",
     "Parameters":{
         "EnvironmentName":{
+            "Description":"Name for the project",
             "Type": "String"
         },
         "VpcCidr":{
+            "Description":"Cidr for the VPC",
             "Type":"String",
             "Default":"10.0.0.0/16"
         },
         "PublicSubnetCidr1":{
-            "Type":"String"
-        },
-        "PublicSubnetCidr2":{
+            "Description":"Cidr for Public Subnet 1",
             "Type":"String"
         },
         "PrivateSubnetCidr1":{
+            "Description":"Cidr for Private Subnet 1",
+            "Type":"String"
+        },
+        "PublicSubnetCidr2":{
+            "Description":"Cidr for Public Subnet 2",
             "Type":"String"
         },
         "PrivateSubnetCidr2":{
+            "Description":"Cidr for Private Subnet 2",
             "Type":"String"
         }
     },
@@ -59,18 +65,6 @@
                 ]
             }
         },
-        "PublicSubnet2":{
-            "Type":"AWS::EC2::Subnet",
-            "Properties":{
-                "VpcId":{"Ref":"VPC"},
-                "AvailabilityZone":{"Fn::Select":[1,{"Fn::GetAZs" : ""}]},
-                "CidrBlock":{"Ref":"PublicSubnetCidr2"},
-                "MapPublicIpOnLaunch":true,
-                "Tags":[
-                    {"Key":"Name", "Value": {"Fn::Sub": ["${EnvName} Public Subnet (AZ2)",{"EnvName": {"Ref": "EnvironmentName"}}]}}
-                ]
-            }
-        },
         "PrivateSubnet1":{
             "Type":"AWS::EC2::Subnet",
             "Properties":{
@@ -80,6 +74,32 @@
                 "MapPublicIpOnLaunch":false,
                 "Tags":[
                     {"Key":"Name", "Value": {"Fn::Sub": ["${EnvName} Private Subnet (AZ1)",{"EnvName": {"Ref": "EnvironmentName"}}]}}
+                ]
+            }
+        },
+        "NatGatewayEIP1":{
+            "Type":"AWS::EC2::EIP",
+            "DependsOn": "InternetGatewayAttachment",
+            "Properties":{
+                "Domain":"vpc"
+            }
+        },
+        "NatGateway1":{
+            "Type":"AWS::EC2::NatGateway",
+            "Properties":{
+                "AllocationId": {"Fn::GetAtt":["NatGatewayEIP1","AllocationId"]},
+                "SubnetId":{"Ref":"PublicSubnet1"}
+            }
+        },
+        "PublicSubnet2":{
+            "Type":"AWS::EC2::Subnet",
+            "Properties":{
+                "VpcId":{"Ref":"VPC"},
+                "AvailabilityZone":{"Fn::Select":[1,{"Fn::GetAZs" : ""}]},
+                "CidrBlock":{"Ref":"PublicSubnetCidr2"},
+                "MapPublicIpOnLaunch":true,
+                "Tags":[
+                    {"Key":"Name", "Value": {"Fn::Sub": ["${EnvName} Public Subnet (AZ2)",{"EnvName": {"Ref": "EnvironmentName"}}]}}
                 ]
             }
         },
@@ -95,25 +115,11 @@
                 ]
             }
         },
-        "NatGatewayEIP1":{
-            "Type":"AWS::EC2::EIP",
-            "DependsOn": "InternetGatewayAttachment",
-            "Properties":{
-                "Domain":"vpc"
-            }
-        },
         "NatGatewayEIP2":{
             "Type":"AWS::EC2::EIP",
             "DependsOn": "InternetGatewayAttachment",
             "Properties":{
                 "Domain":"vpc"
-            }
-        },
-        "NatGateway1":{
-            "Type":"AWS::EC2::NatGateway",
-            "Properties":{
-                "AllocationId": {"Fn::GetAtt":["NatGatewayEIP1","AllocationId"]},
-                "SubnetId":{"Ref":"PublicSubnet1"}
             }
         },
         "NatGateway2":{
@@ -206,28 +212,28 @@
     },
     "Outputs":{
         "VPC":{
-            "Description":"A reference to the created VPC",
+            "Description":"A reference to the VPC",
             "Value":{"Ref":"VPC"},
             "Export":{
                 "Name":{"Fn::Sub":["${EnvName}-VPCID",{"EnvName": {"Ref": "EnvironmentName"}}]}
             }
         },
         "VPCPublicRouteTable":{
-            "Description":"Public Routing",
+            "Description":"A reference to the Public Routing Table",
             "Value":{"Ref":"PublicRouteTable"},
             "Export":{
                 "Name":{"Fn::Sub":["${EnvName}-PUB-RT",{"EnvName": {"Ref": "EnvironmentName"}}]}
             }
         },
         "VPCPrivateRouteTable1":{
-            "Description":"Private Routing AZ1",
+            "Description":"A reference to the Private Routing Table in AZ1",
             "Value":{"Ref":"PrivateRouteTable1"},
             "Export":{
                 "Name":{"Fn::Sub":["${EnvName}-PRI1-RT",{"EnvName": {"Ref": "EnvironmentName"}}]}
             }
         },
         "VPCPrivateRouteTable2":{
-            "Description":"Private Routing AZ2",
+            "Description":"A reference to the Private Routing Table in AZ2",
             "Value":{"Ref":"PrivateRouteTable2"},
             "Export":{
                 "Name":{"Fn::Sub":["${EnvName}-PRI2-RT",{"EnvName": {"Ref": "EnvironmentName"}}]}

@@ -10,10 +10,207 @@
         },
         "Ami":{
             "Type":"String"
+        },
+        "VolumeSize":{
+            "Type":"String"
         }
     },
     "Resources":{
-
+        "UdacityS3ReadOnlyEC2":{
+            "Type": "AWS::IAM::Role",
+            "Properties":{
+                "ManagedPolicyArns":["arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"],
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": ["ec2.amazonaws.com"]
+                            },
+                            "Action": ["sts:AssumeRole"]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "ProfileWithRolesForApp":{
+            "Type":"AWS::IAM::InstanceProfile",
+            "Properties":{
+                "Path":"/",
+                "Roles":["UdacityS3ReadOnlyEC2"]
+            }
+        },
+        "LBSecGroup":{
+            "Type":"AWS::EC2::SecurityGroup",
+            "Properties":{
+                "GroupDescription":"Allow http to our load balancer",
+                "VpcId":{"Fn::ImportValue": {"Fn::Sub":["${EnvName}-VPCID",{"EnvName": {"Ref": "EnvironmentName"}}]}},
+                "SecurityGroupIngress":[{
+                    "IpProtocol":"tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "CidrIp": "0.0.0.0/0"
+                }],
+                "SecurityGroupEgress":[{
+                    "IpProtocol":"tcp",
+                    "FromPort":80,
+                    "ToPort":80,
+                    "CidrIp":"0.0.0.0/0"
+                }]    
+            }
+        },
+        "WebServerSecGroup":{
+            "Type":"AWS::EC2::SecurityGroup",
+            "Properties":{
+                "GroupDescription": "Allow http to our hosts and SSH from local only",
+                "VpcId":{"Fn::ImportValue": {"Fn::Sub":["${EnvName}-VPCID",{"EnvName": {"Ref": "EnvironmentName"}}]}},
+                "SecurityGroupIngress":[{
+                    "IpProtocol":"tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "CidrIp": "0.0.0.0/0"
+                },{
+                    "IpProtocol":"tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "CidrIp": "0.0.0.0/0"
+                }],
+                "SecurityGroupEgress":[{
+                    "IpProtocol":"tcp",
+                    "FromPort": 0,
+                    "ToPort": 65535,
+                    "CidrIp": "0.0.0.0/0"
+                }]
+            }
+        },
+        "WebAppLaunchConfig":{
+            "Type":"AWS::AutoScaling::LaunchConfiguration",
+            "Properties":{
+                "UserData":{
+                    "Fn::Base64":
+                    "#!/bin/bash \n sudo su \n apt-get update -y \n apt-get install unzip awscli apache2 -y \n systemctl start apache2.service \n cd /var/www/html \n aws s3 cp s3://udagram-146991176245/udacity-starter-website.zip . \n unzip -o udacity-starter-website.zip \n rm udacity-starter-website.zip \n exit"
+                },
+                "ImageId":{"Ref":"Ami"},
+                "KeyName":"udacity",
+                "SecurityGroups":[{"Ref":"WebServerSecGroup"}],
+                "InstanceType":{"Ref":"Ec2Type"},
+                "IamInstanceProfile":"ProfileWithRolesForApp",
+                "BlockDeviceMappings":[
+                    {"DeviceName":"/dev/sdk",
+                    "Ebs":{"VolumeSize":"10"}}
+                ]
+            }
+        },
+        "WebAppGroup":{
+            "Type":"AWS::AutoScaling::AutoScalingGroup",
+            "Properties":{
+                "VPCZoneIdentifier":[{
+                    "Fn::ImportValue": {"Fn::Sub":["${EnvName}-PRI1-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}
+                    },{"Fn::ImportValue": {"Fn::Sub":["${EnvName}-PRI2-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}}],
+                "LaunchConfigurationName":{"Ref":"WebAppLaunchConfig"},
+                "MinSize":"3",
+                "MaxSize":"5",
+                "TargetGroupARNs":[{"Ref":"WebAppTargetGroup"}]
+            }
+        },
+        "WebAppLB":{
+            "Type":"AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties":{
+                "Subnets":[
+                    {"Fn::ImportValue": {"Fn::Sub":["${EnvName}-PUB1-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}},
+                    {"Fn::ImportValue": {"Fn::Sub":["${EnvName}-PUB2-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}}
+                ],
+                "SecurityGroups":[{"Ref":"LBSecGroup"}]
+            }
+        },
+        "Listener":{
+            "Type":"AWS::ElasticLoadBalancingV2::Listener",
+            "Properties":{
+                "DefaultActions":[
+                    {
+                        "Type":"forward",
+                        "TargetGroupArn":{"Ref":"WebAppTargetGroup"}
+                    }
+                ],
+                "LoadBalancerArn":{"Ref":"WebAppLB"},
+                "Port":"80",
+                "Protocol":"HTTP"
+            }
+        },
+        "ALBListenerRule":{
+            "Type":"AWS::ElasticLoadBalancingV2::ListenerRule",
+            "Properties":{
+                "Actions":[{
+                    "Type":"forward",
+                    "TargetGroupArn":{"Ref":"WebAppTargetGroup"}
+                }],
+                "Conditions":[{
+                    "Field":"path-pattern",
+                    "Values":["/"]
+                }],
+                "ListenerArn":{"Ref":"Listener"},
+                "Priority":1
+            }
+        },
+        "WebAppTargetGroup":{
+            "Type":"AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties":{
+                "HealthCheckIntervalSeconds":10,
+                "HealthCheckPath":"/",
+                "HealthCheckProtocol":"HTTP",
+                "HealthCheckTimeoutSeconds":8,
+                "HealthyThresholdCount":2,
+                "Port":80,
+                "Protocol":"HTTP",
+                "UnhealthyThresholdCount": 5,
+                "VpcId":{"Fn::ImportValue": {"Fn::Sub":["${EnvName}-VPCID",{"EnvName": {"Ref": "EnvironmentName"}}]}}
+            }
+        },
+        "BastionHostSecurityGroup":{
+            "Type":"AWS::EC2::SecurityGroup",
+            "Properties":{
+                "GroupDescription": "Allow SSH from my IP only",
+                "VpcId":{"Fn::ImportValue": {"Fn::Sub":["${EnvName}-VPCID",{"EnvName": {"Ref": "EnvironmentName"}}]}},
+                "SecurityGroupIngress":[{
+                    "IpProtocol":"tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "CidrIp": {"Fn::Sub":["${MY_IP}/32", {"MY_IP":{"Ref":"MyIp"}}]}
+                }],
+                "SecurityGroupEgress":[{
+                    "IpProtocol":"tcp",
+                    "FromPort": 0,
+                    "ToPort": 65535,
+                    "CidrIp": "0.0.0.0/0"
+                }]
+            }
+        },
+        "BastionHostServer":{
+            "Type":"AWS::EC2::Instance",
+            "DependsOn":"BastionHostSecurityGroup",
+            "Properties":{
+                "ImageId" : {"Ref":"Ami"},
+                "KeyName" : "bastion-host-key",
+                "InstanceType":"t3.micro",
+                "IamInstanceProfile": "ProfileWithRolesForApp",
+                "NetworkInterfaces": [ {
+                    "AssociatePublicIpAddress": "true",
+                    "DeviceIndex":"0",
+                    "GroupSet": [{ "Ref" : "BastionHostSecurityGroup" }],
+                    "SubnetId": {"Fn::ImportValue": {"Fn::Sub":["${EnvName}-PUB1-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}}
+                    }
+                ],
+                "UserData":{
+                    "Fn::Base64":
+                    "#!/bin/bash \n sudo su \n sudo apt-get update -y \n sudo apt-get install awscli -y \n aws s3 cp s3://146991176245-asdf/udacity.pem . \n chmod 400 udacity.pem"
+                },
+                "Tags":[
+                    {"Key":"Name","Value": {"Fn::Sub":["${EnvName}-Bastion-Host",{"EnvName": {"Ref": "EnvironmentName"}}]}}
+                ]
+            }
+        }
     },
     "Outputs":{
 

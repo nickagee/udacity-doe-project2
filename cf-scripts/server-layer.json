@@ -13,6 +13,9 @@
         },
         "VolumeSize":{
             "Type":"String"
+        },
+        "Ec2Type":{
+            "Type":"String"
         }
     },
     "Resources":{
@@ -39,7 +42,7 @@
             "Type":"AWS::IAM::InstanceProfile",
             "Properties":{
                 "Path":"/",
-                "Roles":["UdacityS3ReadOnlyEC2"]
+                "Roles":[{"Ref":"UdacityS3ReadOnlyEC2"}]
             }
         },
         "LBSecGroup":{
@@ -96,7 +99,7 @@
                 "KeyName":"udacity",
                 "SecurityGroups":[{"Ref":"WebServerSecGroup"}],
                 "InstanceType":{"Ref":"Ec2Type"},
-                "IamInstanceProfile":"ProfileWithRolesForApp",
+                "IamInstanceProfile":{"Ref":"ProfileWithRolesForApp"},
                 "BlockDeviceMappings":[
                     {"DeviceName":"/dev/sdk",
                     "Ebs":{"VolumeSize":"10"}}
@@ -194,7 +197,7 @@
                 "ImageId" : {"Ref":"Ami"},
                 "KeyName" : "bastion-host-key",
                 "InstanceType":"t3.micro",
-                "IamInstanceProfile": "ProfileWithRolesForApp",
+                "IamInstanceProfile": {"Ref":"ProfileWithRolesForApp"},
                 "NetworkInterfaces": [ {
                     "AssociatePublicIpAddress": "true",
                     "DeviceIndex":"0",

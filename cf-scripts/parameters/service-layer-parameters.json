@@ -12,6 +12,14 @@
         "ParameterValue":"10"
     },
     {
+        "ParameterKey":"MinInstane",
+        "ParameterValue":"2"
+    },
+    {
+        "ParameterKey":"MaxInstance",
+        "ParameterValue":"4"
+    },
+    {
         "ParameterKey":"Ec2Type",
         "ParameterValue":"t3.medium"
     }

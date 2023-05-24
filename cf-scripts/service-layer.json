@@ -16,6 +16,12 @@
         },
         "Ec2Type":{
             "Type":"String"
+        },
+        "MinInstance":{
+            "Type":"String"
+        },
+        "MaxInstance":{
+            "Type":"String"
         }
     },
     "Resources":{
@@ -93,7 +99,7 @@
             "Properties":{
                 "UserData":{
                     "Fn::Base64":
-                    "#!/bin/bash \n sudo su \n apt-get update -y \n apt-get install unzip awscli apache2 -y \n systemctl start apache2.service \n cd /var/www/html \n aws s3 cp s3://udagram-146991176245/udacity-starter-website.zip . \n unzip -o udacity-starter-website.zip \n rm udacity-starter-website.zip \n exit"
+                    "#!/bin/bash \n sudo apt-get update -y \n sudo apt-get install unzip awscli apache2 -y \n sudo systemctl start apache2.service \n cd /var/www/html \n aws s3 cp s3://udagram-146991176245/udagram-website-alpha.zip /var/www/html \n sudo unzip -o /var/www/html/udagram-website-alpha.zip - d /var/www/html/temp \n sudo mv /var/www/html/temp/udagram/* /var/www/html \n sudo rm /var/www/html/udagram-website-alpha.zip \n sudo rm -r /var/www/html/temp/"
                 },
                 "ImageId":{"Ref":"Ami"},
                 "KeyName":"udacity",
@@ -113,8 +119,8 @@
                     "Fn::ImportValue": {"Fn::Sub":["${EnvName}-PRI1-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}
                     },{"Fn::ImportValue": {"Fn::Sub":["${EnvName}-PRI2-SN",{"EnvName": {"Ref": "EnvironmentName"}}]}}],
                 "LaunchConfigurationName":{"Ref":"WebAppLaunchConfig"},
-                "MinSize":"3",
-                "MaxSize":"5",
+                "MinSize":{"Ref":"MinInstance"},
+                "MaxSize":{"Ref":"MaxInstance"},
                 "TargetGroupARNs":[{"Ref":"WebAppTargetGroup"}]
             }
         },
@@ -207,7 +213,7 @@
                 ],
                 "UserData":{
                     "Fn::Base64":
-                    "#!/bin/bash \n sudo su \n sudo apt-get update -y \n sudo apt-get install awscli -y \n aws s3 cp s3://146991176245-asdf/udacity.pem . \n chmod 400 udacity.pem"
+                    "#!/bin/bash \n sudo apt-get update -y \n sudo apt-get install awscli -y \n aws s3 cp s3://146991176245-asdf/udacity.pem /home/ubuntu/ \n cd /home/ubuntu \n chown -R ubuntu:ubuntu udacity.pem \n chmod 400 udacity.pem"
                 },
                 "Tags":[
                     {"Key":"Name","Value": {"Fn::Sub":["${EnvName}-Bastion-Host",{"EnvName": {"Ref": "EnvironmentName"}}]}}
@@ -219,12 +225,16 @@
         "MainUrl":{
             "Description":"The site url from the load balancer",
             "Value":{"Fn::Sub":["http://${LBDns}",{"LBDns": {"Fn::GetAtt":["WebAppLB", "DNSName"]}}]},
-            "Export":{"Fn::Sub":["${EnvName}-LB-DNS",{"EnvName": {"Ref": "EnvironmentName"}}]}
+            "Export":{
+                "Name":{"Fn::Sub":["${EnvName}-LB-DNS",{"EnvName": {"Ref": "EnvironmentName"}}]}
+            }
         },
         "BastianUrl":{
             "Description":"The Bastion Host Public IP",
-            "Value":{"Fn::Sub":["http://${PubIP}",{"PubIP": {"Fn::GetAtt":["BastionHostServer", "PublicIp"]}}]},
-            "Export":{"Fn::Sub":["${EnvName}-BH-PubIP",{"EnvName": {"Ref": "EnvironmentName"}}]}
+            "Value":{"Fn::Sub":["${PubIP}",{"PubIP": {"Fn::GetAtt":["BastionHostServer", "PublicIp"]}}]},
+            "Export":{
+                "Name":{"Fn::Sub":["${EnvName}-BH-PubIP",{"EnvName": {"Ref": "EnvironmentName"}}]}
+            }
         }
     }
 }

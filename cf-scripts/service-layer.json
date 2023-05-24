@@ -99,7 +99,7 @@
             "Properties":{
                 "UserData":{
                     "Fn::Base64":
-                    "#!/bin/bash \n sudo apt-get update -y \n sudo apt-get install unzip awscli apache2 -y \n sudo systemctl start apache2.service \n cd /var/www/html \n aws s3 cp s3://udagram-146991176245/udagram-website-alpha.zip /var/www/html \n sudo unzip -o /var/www/html/udagram-website-alpha.zip - d /var/www/html/temp \n sudo mv /var/www/html/temp/udagram/* /var/www/html \n sudo rm /var/www/html/udagram-website-alpha.zip \n sudo rm -r /var/www/html/temp/"
+                    "#!/bin/bash \n sudo apt-get update -y \n sudo apt-get install unzip awscli apache2 -y \n sudo systemctl start apache2.service \n cd /var/www/html \n aws s3 cp s3://udagram-146991176245/udagram-website-alpha.zip /var/www/html \n sudo unzip -o /var/www/html/udagram-website-alpha.zip - d /var/www/html/temp/ \n sudo mv /var/www/html/temp/udagram-website-alpha/* /var/www/html \n sudo rm /var/www/html/udagram-website-alpha.zip \n sudo rm -r /var/www/html/temp/"
                 },
                 "ImageId":{"Ref":"Ami"},
                 "KeyName":"udacity",

@@ -17,6 +17,6 @@
     },
     {
         "ParameterKey":"Ec2Type",
-        "ParameterValue":"t2.micro"
+        "ParameterValue":"t3.medium"
     }
 ]

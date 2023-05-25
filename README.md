@@ -1,8 +1,8 @@
 # Udacity DevOps NanoDegree Project 2 - High availability web app for Udagram
 
-# Submission Details
+## Submission Details
 
-![URL to Site](http://servi-webap-71m8eo9uw6sb-1902865430.us-west-2.elb.amazonaws.com/)
+![URL to Site][def]
 
 ![System Diagram](docs/HA_WebPage.png)
 
@@ -15,6 +15,7 @@ This system diagram is very similar to the diagram that we developed as we went 
 1. Website - I repurposed the website that we utilized earlier in the course.
 
 ## Scenario
+
 Your company is creating an Instagram clone called Udagram.
 
 Developers want to deploy a new application to the AWS infrastructure.
@@ -26,6 +27,7 @@ This needs to be automated so that the infrastructure can be discarded as soon a
 Optional - To add more challenge to the project, once the project is completed, you can try deploying sample website files located in a public S3 Bucket to the Apache Web Server running on an EC2 instance. Though, it is not the part of the project rubric.
 
 ## Project Requirements
+
 ### Server specs
 
 You'll need to create a Launch Configuration for your application servers in order to deploy four servers, two located in each of your private subnets. The launch configuration will be used by an auto-scaling group.
@@ -47,3 +49,5 @@ The application needs to be deployed into private subnets with a Load Balancer l
 One of the output exports of the CloudFormation script should be the public URL of the LoadBalancer. Bonus points if you add http:// in front of the load balancer DNS Name in the output, for convenience.
 
 -----
+
+[def]: http://servi-webap-71m8eo9uw6sb-1902865430.us-west-2.elb.amazonaws.com/

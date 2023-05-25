@@ -205,7 +205,6 @@
             "DependsOn":"BastionHostSecurityGroup",
             "Properties":{
                 "ImageId" : {"Ref":"Ami"},
-                "KeyName" : {"Ref":"BKey"},
                 "InstanceType":{"Ref":"Ec2Type"},
                 "IamInstanceProfile": {"Ref":"ProfileWithRolesForApp"},
                 "NetworkInterfaces": [ {

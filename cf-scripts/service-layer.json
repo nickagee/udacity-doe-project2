@@ -12,10 +12,6 @@
             "Type":"AWS::SSM::Parameter::Value<String>",
             "Default":"s3-pem-link"
         },
-        "BKey":{
-            "Type":"AWS::SSM::Parameter::Value<String>",
-            "Default":"bastion-pem"
-        },
         "Ami":{
             "Type":"String"
         },

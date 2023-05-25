@@ -2,6 +2,8 @@
 
 # Submission Details
 
+![URL to Site](http://servi-webap-71m8eo9uw6sb-1902865430.us-west-2.elb.amazonaws.com/)
+
 ![System Diagram](docs/HA_WebPage.png)
 
 This system diagram is very similar to the diagram that we developed as we went along in the lectures.  The main differences are:
@@ -10,7 +12,7 @@ This system diagram is very similar to the diagram that we developed as we went 
 1. S3 Bucket - I added object to my S3 bucket to make the deployment of my services more streamlined.
 1. IAM Assume Role - To secure the S3 objects I created an IAM Assume Role to my EC2 instances (Web Servers and Bastion) to ensure they are locked down.
 1. JSON not YAML - I wanted to challange myself and decided early on that I would compose my Cloudformation Templates in JSON.  This added a bit of a challange at first but one I found the `Fn::...` in the documentation I was able to successfully complete the templates in this format.
-
+1. Website - I repurposed the website that we utilized earlier in the course.
 
 ## Scenario
 Your company is creating an Instagram clone called Udagram.

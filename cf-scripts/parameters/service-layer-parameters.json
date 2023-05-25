@@ -8,10 +8,6 @@
         "ParameterValue":"ami-03f65b8614a860c29"
     },
     {
-        "ParameterKey":"VolumeSize",
-        "ParameterValue":"10"
-    },
-    {
         "ParameterKey":"MinInstance",
         "ParameterValue":"2"
     },
@@ -21,6 +17,6 @@
     },
     {
         "ParameterKey":"Ec2Type",
-        "ParameterValue":"t3.medium"
+        "ParameterValue":"t2.micro"
     }
 ]

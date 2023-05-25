@@ -8,6 +8,10 @@
             "Type":"AWS::SSM::Parameter::Value<String>",
             "Default":"home-ip"
         },
+        "S3PemLink":{
+            "Type":"AWS::SSM::Parameter::Value<String>",
+            "Default":"s3-pem-link"
+        },
         "Ami":{
             "Type":"String"
         },
@@ -212,8 +216,7 @@
                     }
                 ],
                 "UserData":{
-                    "Fn::Base64":
-                    "#!/bin/bash \n sudo apt-get update -y \n sudo apt-get install awscli -y \n aws s3 cp s3://146991176245-asdf/udacity.pem /home/ubuntu/ \n cd /home/ubuntu \n chown -R ubuntu:ubuntu udacity.pem \n chmod 400 udacity.pem"
+                    "Fn::Base64":{"Fn::Sub":["#!/bin/bash \n apt-get update -y \n apt-get install awscli -y \n aws s3 cp {S3Link} /home/ubuntu/ \n cd /home/ubuntu \n chown -R ubuntu:ubuntu *.pem \n chmod 400 *.pem",{"S3Link": {"Ref":"S3PemLink"}}]}
                 },
                 "Tags":[
                     {"Key":"Name","Value": {"Fn::Sub":["${EnvName}-Bastion-Host",{"EnvName": {"Ref": "EnvironmentName"}}]}}

@@ -2,7 +2,7 @@
 
 ## Submission Details
 
-![URL to Site][def]
+[URL to Site][def]
 
 ![System Diagram](docs/HA_WebPage.png)
 
